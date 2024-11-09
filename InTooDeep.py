@@ -87,14 +87,14 @@ class MoveHereActionHandler(idaapi.action_handler_t):
         self.destPath = destPath
         self.srcPaths = srcPaths
 
-    def activate(self, ctx):
-        if not ctx.dirtree_selection:
-            print("Please enable 'Show folders' for this view before continuing")
-            return
-         
+    def activate(self, ctx): 
         widgetType = idaapi.get_widget_type(ctx.widget)
         treeType = getTreeForWidget(widgetType)
         tree = ida_dirtree.get_std_dirtree(treeType)
+        
+        if not ctx.dirtree_selection and not (widgetType == idaapi.BWN_PSEUDOCODE or widgetType == idaapi.BWN_DISASM):
+            print("Please enable 'Show folders' for this view before continuing")
+            return
        
         selectedItems = []
         if widgetType == idaapi.BWN_DISASM or widgetType == idaapi.BWN_PSEUDOCODE:
@@ -118,11 +118,7 @@ class CreateNewFolderActionHandler(idaapi.action_handler_t):
         ida_kernwin.action_handler_t.__init__(self)
         self.destPath = destPath
 
-    def activate(self, ctx):
-        if not ctx.dirtree_selection:
-            print("Please enable 'Show folders' for this view before continuing")
-            return
-        
+    def activate(self, ctx):        
         folderName = ida_kernwin.ask_str("", ida_kernwin.HIST_IDENT, "Please enter folder name")
         newFolderPath = self.destPath + "/" + folderName
 
@@ -130,10 +126,21 @@ class CreateNewFolderActionHandler(idaapi.action_handler_t):
         treeType = getTreeForWidget(widgetType)
         tree = ida_dirtree.get_std_dirtree(treeType)
         
-        absPaths = [tree.get_abspath(i) for i in ctx.dirtree_selection] # Creation of a new dir will invalidate previous ctx
+        absPathOfSelectedItems = None
+        if widgetType == idaapi.BWN_DISASM or widgetType == idaapi.BWN_PSEUDOCODE:
+            # The disassembly and pseudocode views don't populate ctx.dirtree_selection, but ida_dirtree.DIRTREE_FUNCS can still be modified without the show folders view being active
+            ea = getFuncUnderCursor(ctx.widget, ctx.cur_ea)
+            absPathOfSelectedItems = [getFuncAbsPath(ea)]
+        else:        
+            if not ctx.dirtree_selection:
+                print("Please enable 'Show folders' for this view before continuing")
+                return
+            
+            absPathOfSelectedItems = [tree.get_abspath(i) for i in ctx.dirtree_selection] # Creation of a new dir will invalidate previous ctx
+
         tree.mkdir(newFolderPath)
 
-        mh = MoveHereActionHandler(newFolderPath, srcPaths=absPaths)
+        mh = MoveHereActionHandler(newFolderPath, srcPaths=absPathOfSelectedItems)
         mh.activate(ctx)
 
     def update(self, ctx):

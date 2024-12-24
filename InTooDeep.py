@@ -18,15 +18,11 @@ def getTreeForWidget(widget):
         
         idaapi.BWN_DISASM: ida_dirtree.DIRTREE_FUNCS,
         
-        idaapi.BWN_ENUMS: ida_dirtree.DIRTREE_ENUMS,
-        
         idaapi.BWN_IMPORTS: ida_dirtree.DIRTREE_IMPORTS,
         
         idaapi.BWN_LOCTYPS: ida_dirtree.DIRTREE_LOCAL_TYPES,
             
         idaapi.BWN_NAMES: ida_dirtree.DIRTREE_NAMES,
-            
-        idaapi.BWN_STRUCTS: ida_dirtree.DIRTREE_STRUCTS,
     }.get(widget, None)
 
 

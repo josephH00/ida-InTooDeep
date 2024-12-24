@@ -11,7 +11,7 @@ newFolderCustomIconId = -1
 
 
 def getTreeForWidget(widget):
-    return {
+    mapping = {
         idaapi.BWN_FUNCS: ida_dirtree.DIRTREE_FUNCS,
         
         idaapi.BWN_PSEUDOCODE: ida_dirtree.DIRTREE_FUNCS,
@@ -23,7 +23,14 @@ def getTreeForWidget(widget):
         idaapi.BWN_LOCTYPS: ida_dirtree.DIRTREE_LOCAL_TYPES,
             
         idaapi.BWN_NAMES: ida_dirtree.DIRTREE_NAMES,
-    }.get(widget, None)
+    }
+    
+    # Retain compatibility for removed Enums and Structs views in IDA versions 8.x and lower
+    if idaapi.IDA_SDK_VERSION < 900:
+        mapping[idaapi.BWN_ENUMS] = ida_dirtree.DIRTREE_ENUMS
+        mapping[idaapi.BWN_STRUCTS] = ida_dirtree.DIRTREE_STRUCTS
+    
+    return mapping.get(widget, None)
 
 
 def getBytesFromQStyleIcon(icon):
